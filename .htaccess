@@ -1,0 +1,3 @@
+
+
+#ErrorDocument 404 http://localhost/own/errors/not_found.html
