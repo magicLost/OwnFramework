@@ -5,25 +5,25 @@ require_once __DIR__.'/../vendor/autoload.php';
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Simplex\Framework;
 use Symfony\Component\HttpKernel\Controller\{
     ControllerResolver,
     ArgumentResolver
 };
 use Symfony\Component\Routing\{
     RequestContext,
-    Matcher\UrlMatcher,
-    Exception\ResourceNotFoundException
+    Matcher\UrlMatcher
 };
 
-function render_template($request){
+/*function render_template($request){
 
     extract($request->attributes->all(), EXTR_SKIP);
     ob_start();
-    /** @var string $_route */
+    /** @var string $_route
     include sprintf(__DIR__.'/../src/pages/%s.php', $_route);
 
     return new Response(ob_get_clean());
-}
+}*/
 
 
 $request = Request::createFromGlobals();
@@ -36,22 +36,8 @@ $matcher = new UrlMatcher($routes, $context);
 $controllerResolver = new ControllerResolver();
 $argumentResolver = new ArgumentResolver();
 
-try{
-
-    $request->attributes->add($matcher->match($request->getPathInfo()));
-
-    $controller = $controllerResolver->getController($request);
-    $arguments = $argumentResolver->getArguments($request, $controller);
-
-    //var_dump($arguments);
-
-    $response = call_user_func_array($controller, $arguments);
-
-}catch(ResourceNotFoundException $exception){
-    $response = new Response('Not Found', 404);
-}catch(Exception $exception){
-    $response = new Response('An error occurred', 500);
-}
+$framework = new Framework($matcher, $controllerResolver, $argumentResolver);
+$response = $framework->handle($request);
 
 $response->send();
 
